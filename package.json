@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
     "test:types": "tsc --noEmit",
     "openapi:gen": "openapi-typescript https://api.browser-use.com/openapi.json -o ./src/lib/api/v1.d.ts"
   },
@@ -52,6 +53,7 @@
     "tailwindcss": "^4",
     "tsx": "4.20.3",
     "tw-animate-css": "1.3.5",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.0"
   }
 }
