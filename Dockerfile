@@ -17,6 +17,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
+ENV SKIP_ENV_VALIDATION=1
 RUN pnpm build
 
 # Runner ---------------------------------------------------------------------
