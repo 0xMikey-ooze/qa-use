@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:types": "tsc --noEmit",
-    "openapi:gen": "openapi-typescript https://api.browser-use.com/openapi.json -o ./src/lib/api/v1.d.ts"
+    "openapi:gen": "openapi-typescript https://api.browser-use.com/openapi.json -o ./src/lib/api/v1.d.ts",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.1.14",
