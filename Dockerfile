@@ -1,38 +1,24 @@
-FROM node:23-alpine AS deps
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
+FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --no-frozen-lockfile
+COPY package.json ./
+RUN npm install --legacy-peer-deps
 
-# Builder --------------------------------------------------------------------
-
-FROM node:23-alpine AS builder
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
+FROM node:20-alpine AS builder
 WORKDIR /app
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV SKIP_ENV_VALIDATION=1
-RUN pnpm build
+ENV NODE_ENV=production
+RUN npm run build
 
-# Runner ---------------------------------------------------------------------
-
-FROM node:23-alpine AS runner
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-
-
-COPY --from=builder /app ./
-
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
+ENV PORT=3000
+CMD ["node", "server.js"]
 
-CMD ["pnpm", "start"]
