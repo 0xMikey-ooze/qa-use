@@ -859,7 +859,7 @@ export interface components {
          * @description Enumeration of possible v2 task states.
          * @enum {string}
          */
-        V2TaskStatusEnum: "running" | "finished" | "failed";
+        V2TaskStatusEnum: "created" | "running" | "finished" | "failed" | "stopped" | "paused";
         /** V2TaskStatusResponse */
         V2TaskStatusResponse: {
             /** Id */
