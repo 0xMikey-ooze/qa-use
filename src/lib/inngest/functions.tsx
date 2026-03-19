@@ -201,8 +201,8 @@ async function _pollTaskUntilFinished({ testRunId }: { testRunId: number }) {
       throw new NonRetriableError(`Test run not started: ${testRunId}`)
     }
 
-    const buTaskResponse = await client.GET('/api/v1/task/{task_id}', {
-      params: { path: { task_id: dbTestRun.browserUseId } },
+    const buTaskResponse = await client.GET('/api/v2/tasks/{taskId}', {
+      params: { path: { taskId: dbTestRun.browserUseId } },
     })
 
     if (buTaskResponse.error || !buTaskResponse.data) {
@@ -221,12 +221,9 @@ async function _pollTaskUntilFinished({ testRunId }: { testRunId: number }) {
                 finishedAt: new Date(),
                 status: 'passed',
                 error: null,
-                publicShareUrl: buTaskResponse.data.public_share_url,
-                liveUrl: buTaskResponse.data.live_url,
               })
               .where(eq(schema.testRun.id, dbTestRun.id))
 
-            // NOTE: Here we update all steps at once and mark them as passed.
             await tx
               .update(schema.testRunStep)
               .set({
@@ -244,12 +241,9 @@ async function _pollTaskUntilFinished({ testRunId }: { testRunId: number }) {
                 finishedAt: new Date(),
                 status: 'failed',
                 error: taskResult.error,
-                publicShareUrl: buTaskResponse.data.public_share_url,
-                liveUrl: buTaskResponse.data.live_url,
               })
               .where(eq(schema.testRun.id, dbTestRun.id))
 
-            // NOTE: We manually check each step to see if it was performed as expected.
             for (const step of dbTestRun.testRunSteps) {
               // TODO: Unify step ID types!
               const passed = taskResult.steps?.find((s) => s.id === `${step.stepId}`)
@@ -267,25 +261,12 @@ async function _pollTaskUntilFinished({ testRunId }: { testRunId: number }) {
         return { ok: true, data: buTaskResponse.data.output }
       }
 
-      case 'running':
-      case 'created': {
-        if (buTaskResponse.data.live_url) {
-          await db
-            .update(schema.testRun)
-            .set({
-              liveUrl: buTaskResponse.data.live_url,
-              publicShareUrl: buTaskResponse.data.public_share_url,
-            })
-            .where(eq(schema.testRun.id, dbTestRun.id))
-        }
-
+      case 'running': {
         await new Promise((resolve) => setTimeout(resolve, 1_000))
         break
       }
 
-      case 'failed':
-      case 'paused':
-      case 'stopped': {
+      case 'failed': {
         await db
           .update(schema.testRun)
           .set({
