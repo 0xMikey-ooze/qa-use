@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/run-task": {
+    "/api/v2/tasks": {
         parameters: {
             query?: never;
             header?: never;
@@ -14,10 +14,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Run Task
-         * @description Requires an active subscription. Returns the task ID that can be used to track progress.
+         * Create Task
+         * @description Requires an active subscription. Returns the task ID and session ID. HTTP 202 Accepted.
          */
-        post: operations["run_task_api_v1_run_task_post"];
+        post: operations["create_task_api_v2_tasks_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -827,6 +827,13 @@ export interface components {
             /** Id */
             id: string;
         };
+        /** V2TaskCreatedResponse */
+        V2TaskCreatedResponse: {
+            /** Id */
+            id: string;
+            /** SessionId */
+            sessionId: string;
+        };
         /** TaskGifResponse */
         TaskGifResponse: {
             /** Gif */
@@ -1052,7 +1059,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    run_task_api_v1_run_task_post: {
+    create_task_api_v2_tasks_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1065,13 +1072,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Task Accepted */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskCreatedResponse"];
+                    "application/json": components["schemas"]["V2TaskCreatedResponse"];
                 };
             };
             /** @description Validation Error */

@@ -6,5 +6,5 @@ export type Client = ReturnType<typeof createClient<paths>>
 
 export const client = createClient<paths>({
   baseUrl: 'https://api.browser-use.com/',
-  headers: { Authorization: `Bearer ${process.env.BROWSER_USE_API_KEY}` },
+  headers: { 'X-Browser-Use-API-Key': process.env.BROWSER_USE_API_KEY ?? '' },
 })
