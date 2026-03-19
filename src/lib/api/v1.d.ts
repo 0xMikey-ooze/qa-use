@@ -24,6 +24,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Task
+         * @description Returns the current status of a v2 task, including its output if finished.
+         */
+        get: operations["get_task_api_v2_tasks__taskId__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stop-task": {
         parameters: {
             query?: never;
@@ -834,6 +854,22 @@ export interface components {
             /** SessionId */
             sessionId: string;
         };
+        /**
+         * V2TaskStatusEnum
+         * @description Enumeration of possible v2 task states.
+         * @enum {string}
+         */
+        V2TaskStatusEnum: "running" | "finished" | "failed";
+        /** V2TaskStatusResponse */
+        V2TaskStatusResponse: {
+            /** Id */
+            id: string;
+            status: components["schemas"]["V2TaskStatusEnum"];
+            /** Output */
+            output: string | null;
+            /** IsSuccess */
+            isSuccess: boolean | null;
+        };
         /** TaskGifResponse */
         TaskGifResponse: {
             /** Gif */
@@ -1079,6 +1115,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["V2TaskCreatedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_task_api_v2_tasks__taskId__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["V2TaskStatusResponse"];
                 };
             };
             /** @description Validation Error */
