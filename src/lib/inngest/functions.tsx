@@ -136,8 +136,8 @@ async function _startTestRun({ testRunId }: { testRunId: number }): Promise<numb
     })),
   }
 
-  // Start browser task
-  const buTaskResponse = await client.POST('/api/v1/run-task', {
+  // Start browser task via v2 API (returns HTTP 202 with {id, sessionId})
+  const buTaskResponse = await client.POST('/api/v2/tasks', {
     body: {
       highlight_elements: false,
       enable_public_share: true,
