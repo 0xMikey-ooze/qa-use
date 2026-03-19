@@ -63,17 +63,7 @@ describe('Browser Use API v2 task status polling', () => {
     expect(sourceCode).not.toContain("'/api/v1/task/{task_id}'")
   })
 
-  it('does not reference v1-only statuses (created, paused, stopped) in polling logic', () => {
-    const pollFnStart = sourceCode.indexOf('async function _pollTaskUntilFinished')
-    const pollFnEnd = sourceCode.indexOf('\nasync function', pollFnStart + 1)
-    const pollFnBody = sourceCode.substring(pollFnStart, pollFnEnd > 0 ? pollFnEnd : undefined)
-
-    expect(pollFnBody).not.toContain("'created'")
-    expect(pollFnBody).not.toContain("'paused'")
-    expect(pollFnBody).not.toContain("'stopped'")
-  })
-
-  it('handles the v2 status values: running, finished, failed', () => {
+  it('handles all v2 status values: running, finished, failed, stopped, paused, created', () => {
     const pollFnStart = sourceCode.indexOf('async function _pollTaskUntilFinished')
     const pollFnEnd = sourceCode.indexOf('\nasync function', pollFnStart + 1)
     const pollFnBody = sourceCode.substring(pollFnStart, pollFnEnd > 0 ? pollFnEnd : undefined)
@@ -81,6 +71,49 @@ describe('Browser Use API v2 task status polling', () => {
     expect(pollFnBody).toContain("'finished'")
     expect(pollFnBody).toContain("'running'")
     expect(pollFnBody).toContain("'failed'")
+    expect(pollFnBody).toContain("'stopped'")
+    expect(pollFnBody).toContain("'paused'")
+    expect(pollFnBody).toContain("'created'")
+  })
+
+  it('treats stopped like failed — updates DB and returns ok: false', () => {
+    const pollFnStart = sourceCode.indexOf('async function _pollTaskUntilFinished')
+    const pollFnEnd = sourceCode.indexOf('\nasync function', pollFnStart + 1)
+    const pollFnBody = sourceCode.substring(pollFnStart, pollFnEnd > 0 ? pollFnEnd : undefined)
+
+    const stoppedCaseStart = pollFnBody.indexOf("case 'stopped'")
+    expect(stoppedCaseStart).toBeGreaterThan(-1)
+
+    const stoppedSection = pollFnBody.substring(stoppedCaseStart, stoppedCaseStart + 400)
+    expect(stoppedSection).toContain("status: 'failed'")
+    expect(stoppedSection).toContain('ok: false')
+  })
+
+  it('treats paused like running — continues polling', () => {
+    const pollFnStart = sourceCode.indexOf('async function _pollTaskUntilFinished')
+    const pollFnEnd = sourceCode.indexOf('\nasync function', pollFnStart + 1)
+    const pollFnBody = sourceCode.substring(pollFnStart, pollFnEnd > 0 ? pollFnEnd : undefined)
+
+    const pausedCaseStart = pollFnBody.indexOf("case 'paused'")
+    expect(pausedCaseStart).toBeGreaterThan(-1)
+  })
+
+  it('treats created like running — continues polling', () => {
+    const pollFnStart = sourceCode.indexOf('async function _pollTaskUntilFinished')
+    const pollFnEnd = sourceCode.indexOf('\nasync function', pollFnStart + 1)
+    const pollFnBody = sourceCode.substring(pollFnStart, pollFnEnd > 0 ? pollFnEnd : undefined)
+
+    const createdCaseStart = pollFnBody.indexOf("case 'created'")
+    expect(createdCaseStart).toBeGreaterThan(-1)
+  })
+
+  it('has a default case that does not throw and continues polling', () => {
+    const pollFnStart = sourceCode.indexOf('async function _pollTaskUntilFinished')
+    const pollFnEnd = sourceCode.indexOf('\nasync function', pollFnStart + 1)
+    const pollFnBody = sourceCode.substring(pollFnStart, pollFnEnd > 0 ? pollFnEnd : undefined)
+
+    expect(pollFnBody).toContain('default:')
+    expect(pollFnBody).not.toContain('ExhaustiveSwitchCheck')
   })
 })
 
@@ -132,9 +165,14 @@ describe('Browser Use API v2 type definitions', () => {
     expect(responseSection).toContain('isSuccess')
   })
 
-  it('defines V2TaskStatusEnum with only running, finished, failed', () => {
+  it('defines V2TaskStatusEnum with all possible statuses', () => {
     expect(typesSource).toContain('V2TaskStatusEnum')
-    expect(typesSource).toMatch(/"running"\s*\|\s*"finished"\s*\|\s*"failed"/)
+    expect(typesSource).toContain('"running"')
+    expect(typesSource).toContain('"finished"')
+    expect(typesSource).toContain('"failed"')
+    expect(typesSource).toContain('"stopped"')
+    expect(typesSource).toContain('"paused"')
+    expect(typesSource).toContain('"created"')
   })
 })
 

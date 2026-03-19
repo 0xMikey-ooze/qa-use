@@ -8,7 +8,6 @@ import { resend } from '../resend/client'
 import { SuiteFailedEmail } from '../resend/emails/SuiteFailedEmail'
 import type { TestDefinition } from '../testing/engine'
 import { getTaskPrompt, getTaskResponse, RESPONSE_JSON_SCHEMA } from '../testing/engine'
-import { ExhaustiveSwitchCheck } from '../types'
 import { inngest } from './client'
 
 // Functions -----------------------------------------------------------------
@@ -261,12 +260,15 @@ async function _pollTaskUntilFinished({ testRunId }: { testRunId: number }) {
         return { ok: true, data: buTaskResponse.data.output }
       }
 
-      case 'running': {
+      case 'running':
+      case 'paused':
+      case 'created': {
         await new Promise((resolve) => setTimeout(resolve, 1_000))
         break
       }
 
-      case 'failed': {
+      case 'failed':
+      case 'stopped': {
         await db
           .update(schema.testRun)
           .set({
@@ -281,7 +283,9 @@ async function _pollTaskUntilFinished({ testRunId }: { testRunId: number }) {
       }
 
       default:
-        throw new ExhaustiveSwitchCheck(buTaskResponse.data.status)
+        console.warn(`Unknown task status: "${buTaskResponse.data.status}", continuing to poll...`)
+        await new Promise((resolve) => setTimeout(resolve, 1_000))
+        break
     }
   }
 }
